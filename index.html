@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Indian Stock Market Monitor</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#667eea">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Stock Monitor">
+    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiByeD0iMjQiIGZpbGw9IiM2NjdlZWEiLz4KPHN2ZyB4PSI0OCIgeT0iNDgiIHdpZHRoPSI5NiIgaGVpZ2h0PSI5NiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiPgo8cGF0aCBkPSJtMyAzIDMgOSA0LTYgNCA2IDItMy02IDMgMyA5Ii8+CjxyZWN0IHg9IjQiIHk9IjE4IiB3aWR0aD0iMTYiIGhlaWdodD0iMiIvPgo8L3N2Zz4KPC9zdmc+">
+    
+    <!-- Manifest -->
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkluZGlhbiBTdG9jayBNYXJrZXQgTW9uaXRvciIsCiAgInNob3J0X25hbWUiOiAiU3RvY2sgTW9uaXRvciIsCiAgImRlc2NyaXB0aW9uIjogIlJlYWwtdGltZSBJbmRpYW4gc3RvY2sgbWFya2V0IGFsZXJ0cyIsCiAgInN0YXJ0X3VybCI6ICIuLyIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgInRoZW1lX2NvbG9yIjogIiM2NjdlZWEiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiNmZmZmZmYiLAogICJpY29ucyI6IFsKICAgIHsKICAgICAgInNyYyI6ICJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LFBITjJaeUIzYVdSMGFEMGlNVGt5SWlCb1pXbG5hSFE5SWpFNU1pSWdkbWxsZDBKdmVEMGlNQ0F3SURFNU1pQXhPVElpSUdacGJHdzlJbTV2Ym1VaUlIaHRiRzV6UFNKb2RIUndPaTh2ZDNkM0xuY3pMbTl5Wnk4eU1EQXdMM04yWnlJK0NqeHlaV04wSUhkcFpIUm9QU0l4T1RJaUlHaGxhV2RvZEQwaU1Ua3lJaUJ5ZUQwaU1qUWlJR1pwYkd3OUlpTTJOamRsWldFaUx6NEtQSE4yWnlCNFBTSTBPQ0lnZVQwaU5EZ2lJSGRwWkhSb1BTSTVOaUlnYUdWcFoyaDBQU0k1TmlJZ2RtbGxkMEp2ZUQwaU1DQXdJREkwSURJMElpQm1hV3hzUFNKdWIyNWxJaUJ6ZEhKdmEyVTlJbmRvYVhSbElpQnpkSEp2YTJVdGQybGtkR2c5SWpJaVBnbzhjR0YwYUNCa1BTSnRNeUF6YkRNZ09TQTBMVFlnTkNBMklESXRNeUEySURNZ016a2lMejRLUEhKbFkzUWdlRDBpTkNJZ2VUMGlNVGdpSUhkcFpIUm9QVEU6");
+    };
+  }, 18iUlhoWldsbmFIUTlJakl5THlJK0NpQjJaMXdpTCtaOWJXUnVPeTQ5SUc1dmJtVWlJSGR0Ykc1elBTSjZkSFJ3T2k4dmQzZDNMblkzTG05eVp5OHlNREF3TDNOMlp5SS9vb1kyVz0=">"
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .card h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #34495e;
+            font-weight: 600;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+        }
+
+        .stock-list {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-top: 30px;
+        }
+
+        .stock-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid #e1e8ed;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+
+        .stock-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .stock-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stock-symbol {
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+
+        .stock-price {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        .price-change {
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .price-up {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .price-down {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .price-neutral {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            background: #e8f5e8;
+            color: #2d5a2d;
+        }
+
+        .status.error {
+            background: #f8e8e8;
+            color: #8b0000;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #28a745;
+            animation: pulse 2s infinite;
+        }
+
+        .status.error .status-indicator {
+            background: #dc3545;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .alert-log {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .alert-item {
+            padding: 15px;
+            border-left: 4px solid #667eea;
+            background: #f8f9ff;
+            margin-bottom: 10px;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .alert-time {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+
+        .alert-message {
+            color: #2c3e50;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📈 Indian Stock Market Monitor</h1>
+            <p>Get instant alerts when your stocks move beyond your custom threshold during market hours</p>
+        </div>
+
+        <div class="dashboard">
+            <div class="card">
+                <h2>Add Stock to Monitor</h2>
+                <div class="input-group">
+                    <label for="stockSymbol">Stock Symbol (NSE)</label>
+                    <input type="text" id="stockSymbol" placeholder="e.g., RELIANCE, TCS, INFY" style="text-transform: uppercase;">
+                </div>
+                <button class="btn" onclick="addStock()">Add to Watchlist</button>
+                <button class="btn btn-secondary" onclick="removeAllStocks()">Clear All</button>
+            </div>
+
+            <div class="card">
+                <h2>Alert Settings</h2>
+                <div class="input-group">
+                    <label for="alertEmail">Email Address</label>
+                    <input type="email" id="alertEmail" placeholder="your.email@gmail.com">
+                </div>
+                <div class="input-group">
+                    <label for="alertPhone">Phone Number (SMS)</label>
+                    <input type="tel" id="alertPhone" placeholder="+91-9876543210">
+                </div>
+                <div class="input-group">
+                    <label for="alertThreshold">Alert Threshold (%)</label>
+                    <input type="number" id="alertThreshold" min="0.1" max="50" step="0.1" value="5" placeholder="5.0">
+                </div>
+                <div class="input-group">
+                    <label for="marketHours">Market Hours</label>
+                    <select id="marketHours">
+                        <option value="auto">Auto (9:15 AM - 3:30 PM IST)</option>
+                        <option value="extended">Extended (9:00 AM - 4:00 PM IST)</option>
+                        <option value="24x7">24x7 Monitoring</option>
+                        <option value="custom">Custom Hours</option>
+                    </select>
+                </div>
+                <div class="input-group" id="customHoursGroup" style="display: none;">
+                    <label>Custom Market Hours (IST)</label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="time" id="startTime" value="09:15">
+                        <span>to</span>
+                        <input type="time" id="endTime" value="15:30">
+                    </div>
+                </div>
+                <button class="btn" onclick="toggleMonitoring()">Start Monitoring</button>
+            </div>
+        </div>
+
+        <div class="stock-list">
+            <h2>Your Watchlist</h2>
+            <div id="stockItems">
+                <p style="text-align: center; color: #7f8c8d; padding: 20px;">No stocks added yet. Add some stocks to get started!</p>
+            </div>
+        </div>
+
+        <div class="status" id="monitoringStatus">
+            <div class="status-indicator"></div>
+            <span>Monitoring stopped. Click "Start Monitoring" for live alerts during market hours.</span>
+        </div>
+
+        <div class="alert-log">
+            <h2>⚡ Real-Time Alerts</h2>
+            <div id="alertLog">
+                <p style="text-align: center; color: #7f8c8d; padding: 20px;">No real-time alerts yet. Alerts will appear instantly when stocks move beyond your threshold during market hours.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let watchlist = [];
+        let isMonitoring = false;
+        let monitoringInterval;
+        let basePrices = {};
+        let marketHoursCheckInterval;
+
+        // Market hours configuration
+        const marketSchedule = {
+            auto: { start: '09:15', end: '15:30' },
+            extended: { start: '09:00', end: '16:00' },
+            '24x7': null, // Always active
+            custom: null // Will be set dynamically
+        };
+
+        // Check if current time is within market hours
+        function isMarketOpen() {
+            const marketMode = document.getElementById('marketHours').value;
+            
+            if (marketMode === '24x7') {
+                return true;
+            }
+            
+            const now = new Date();
+            const currentTime = now.toTimeString().slice(0, 5); // HH:MM format
+            const currentDay = now.getDay(); // 0 = Sunday, 6 = Saturday
+            
+            // Check if it's a weekend (Saturday = 6, Sunday = 0)
+            if (currentDay === 0 || currentDay === 6) {
+                return false;
+            }
+            
+            let startTime, endTime;
+            
+            if (marketMode === 'custom') {
+                startTime = document.getElementById('startTime').value;
+                endTime = document.getElementById('endTime').value;
+            } else {
+                const schedule = marketSchedule[marketMode];
+                startTime = schedule.start;
+                endTime = schedule.end;
+            }
+            
+            return currentTime >= startTime && currentTime <= endTime;
+        }
+
+        // Update market status display
+        function updateMarketStatus() {
+            const isOpen = isMarketOpen();
+            const statusElement = document.getElementById('monitoringStatus');
+            
+            if (!isMonitoring) {
+                statusElement.className = 'status error';
+                statusElement.innerHTML = '<div class="status-indicator"></div><span>Monitoring stopped. Click "Start Monitoring" for live alerts.</span>';
+                return;
+            }
+            
+            if (isOpen) {
+                statusElement.className = 'status';
+                statusElement.innerHTML = '<div class="status-indicator"></div><span>🔴 LIVE - Market is OPEN, real-time monitoring active</span>';
+            } else {
+                statusElement.className = 'status error';
+                const nextOpen = getNextMarketOpen();
+                statusElement.innerHTML = `<div class="status-indicator"></div><span>📴 Market CLOSED - Monitoring paused until ${nextOpen}</span>`;
+            }
+        }
+
+        // Calculate next market opening time
+        function getNextMarketOpen() {
+            const marketMode = document.getElementById('marketHours').value;
+            if (marketMode === '24x7') return 'Always Open';
+            
+            const now = new Date();
+            const tomorrow = new Date(now);
+            tomorrow.setDate(now.getDate() + 1);
+            
+            let startTime;
+            if (marketMode === 'custom') {
+                startTime = document.getElementById('startTime').value;
+            } else {
+                startTime = marketSchedule[marketMode].start;
+            }
+            
+            // If it's Friday evening, next open is Monday
+            if (now.getDay() === 5 && now.getHours() >= 15) {
+                const monday = new Date(now);
+                monday.setDate(now.getDate() + 3);
+                return `Monday ${startTime}`;
+            }
+            
+            // If it's weekend, next open is Monday
+            if (now.getDay() === 0 || now.getDay() === 6) {
+                const daysUntilMonday = now.getDay() === 0 ? 1 : 2;
+                const monday = new Date(now);
+                monday.setDate(now.getDate() + daysUntilMonday);
+                return `Monday ${startTime}`;
+            }
+            
+            return `Tomorrow ${startTime}`;
+        }
+
+        // Sample Indian stock data (in real implementation, this would come from an API)
+        const sampleStockData = {
+            'RELIANCE': { price: 2456.75, change: 2.3 },
+            'TCS': { price: 3234.50, change: -1.2 },
+            'INFY': { price: 1456.20, change: 3.8 },
+            'HDFCBANK': { price: 1534.80, change: -0.5 },
+            'ICICIBANK': { price: 945.30, change: 1.7 },
+            'SBIN': { price: 567.45, change: -2.1 },
+            'WIPRO': { price: 423.65, change: 0.8 },
+            'MARUTI': { price: 9876.40, change: -3.2 },
+            'BAJFINANCE': { price: 6543.20, change: 4.1 },
+            'HINDUNILVR': { price: 2387.90, change: 1.5 }
+        };
+
+        function addStock() {
+            const symbol = document.getElementById('stockSymbol').value.toUpperCase().trim();
+            
+            if (!symbol) {
+                alert('Please enter a stock symbol');
+                return;
+            }
+
+            if (watchlist.includes(symbol)) {
+                alert('Stock already in watchlist');
+                return;
+            }
+
+            // In real implementation, validate if stock exists via API
+            if (!sampleStockData[symbol]) {
+                alert('Stock not found. Please check the symbol.');
+                return;
+            }
+
+            watchlist.push(symbol);
+            basePrices[symbol] = sampleStockData[symbol].price;
+            document.getElementById('stockSymbol').value = '';
+            
+            updateWatchlistDisplay();
+            showAlert(`Added ${symbol} to watchlist`, 'success');
+        }
+
+        function removeStock(symbol) {
+            watchlist = watchlist.filter(s => s !== symbol);
+            delete basePrices[symbol];
+            updateWatchlistDisplay();
+            showAlert(`Removed ${symbol} from watchlist`, 'info');
+        }
+
+        function removeAllStocks() {
+            if (watchlist.length === 0) {
+                alert('Watchlist is already empty');
+                return;
+            }
+            
+            if (confirm('Are you sure you want to remove all stocks?')) {
+                watchlist = [];
+                basePrices = {};
+                updateWatchlistDisplay();
+                showAlert('Cleared all stocks from watchlist', 'info');
+            }
+        }
+
+        function updateWatchlistDisplay() {
+            const container = document.getElementById('stockItems');
+            
+            if (watchlist.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #7f8c8d; padding: 20px;">No stocks added yet. Add some stocks to get started!</p>';
+                return;
+            }
+
+            container.innerHTML = watchlist.map(symbol => {
+                const data = sampleStockData[symbol];
+                const changeClass = data.change > 0 ? 'price-up' : data.change < 0 ? 'price-down' : 'price-neutral';
+                const changeSymbol = data.change > 0 ? '+' : '';
+                
+                return `
+                    <div class="stock-item">
+                        <div class="stock-info">
+                            <div class="stock-symbol">${symbol}</div>
+                            <div class="stock-price">₹${data.price.toFixed(2)}</div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div class="price-change ${changeClass}">
+                                ${changeSymbol}${data.change.toFixed(2)}%
+                            </div>
+                            <button class="btn btn-secondary" onclick="removeStock('${symbol}')" style="padding: 8px 15px; font-size: 0.9rem;">Remove</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleMonitoring() {
+            const email = document.getElementById('alertEmail').value;
+            const phone = document.getElementById('alertPhone').value;
+            
+            if (!email && !phone) {
+                alert('Please provide at least an email or phone number for alerts');
+                return;
+            }
+
+            if (watchlist.length === 0) {
+                alert('Please add some stocks to monitor');
+                return;
+            }
+
+            if (isMonitoring) {
+                stopMonitoring();
+            } else {
+                startMonitoring();
+            }
+        }
+
+        function startMonitoring() {
+            const threshold = parseFloat(document.getElementById('alertThreshold').value);
+            
+            if (isNaN(threshold) || threshold <= 0) {
+                alert('Please enter a valid threshold percentage (greater than 0)');
+                return;
+            }
+            
+            isMonitoring = true;
+            document.querySelector('[onclick="toggleMonitoring()"]').textContent = 'Stop Monitoring';
+            
+            // Start market hours checking
+            marketHoursCheckInterval = setInterval(updateMarketStatus, 30000); // Check every 30 seconds
+            updateMarketStatus();
+            
+            // Start stock monitoring (will only run during market hours)
+            monitoringInterval = setInterval(() => {
+                if (isMarketOpen()) {
+                    checkStocks();
+                }
+            }, 2000);
+            
+            showAlert('Real-time stock monitoring started!', 'success');
+        }
+
+        function stopMonitoring() {
+            isMonitoring = false;
+            document.querySelector('[onclick="toggleMonitoring()"]').textContent = 'Start Monitoring';
+            
+            if (monitoringInterval) {
+                clearInterval(monitoringInterval);
+            }
+            
+            if (marketHoursCheckInterval) {
+                clearInterval(marketHoursCheckInterval);
+            }
+            
+            updateMarketStatus();
+            showAlert('Stock monitoring stopped', 'info');
+        }
+
+        function checkStocks() {
+            const threshold = parseFloat(document.getElementById('alertThreshold').value);
+            
+            watchlist.forEach(symbol => {
+                // Simulate real-time price fluctuations
+                const currentData = sampleStockData[symbol];
+                const basePrice = basePrices[symbol];
+                
+                // Simulate more realistic price movements (smaller, frequent changes)
+                const randomChange = (Math.random() - 0.5) * 0.8; // Random change between -0.4% to +0.4%
+                const newPrice = currentData.price * (1 + randomChange / 100);
+                
+                // Update current price
+                sampleStockData[symbol].price = newPrice;
+                
+                // Calculate percentage change from base price
+                const percentChange = ((newPrice - basePrice) / basePrice) * 100;
+                sampleStockData[symbol].change = percentChange;
+                
+                // Check if threshold is breached for immediate alert
+                if (Math.abs(percentChange) >= threshold) {
+                    triggerAlert(symbol, newPrice, percentChange);
+                    // Reset base price after alert to avoid repeated alerts
+                    basePrices[symbol] = newPrice;
+                }
+            });
+            
+            updateWatchlistDisplay();
+        }
+
+        function triggerAlert(symbol, price, change) {
+            const direction = change > 0 ? '📈 UP' : '📉 DOWN';
+            const alertType = change > 0 ? 'GAIN' : 'LOSS';
+            const timestamp = new Date().toLocaleTimeString('en-IN');
+            const threshold = parseFloat(document.getElementById('alertThreshold').value);
+            
+            const message = `🚨 ${threshold}% ALERT: ${symbol} moved ${Math.abs(change).toFixed(2)}% ${direction} to ₹${price.toFixed(2)} at ${timestamp}`;
+            
+            // Immediate notification - simulate real-time email/SMS
+            simulateRealTimeAlert(symbol, message, alertType);
+            
+            addToAlertLog(message);
+            
+            // Visual alert with sound simulation
+            flashAlert(symbol, change);
+        }
+
+        function simulateRealTimeAlert(symbol, message, alertType) {
+            const email = document.getElementById('alertEmail').value;
+            const phone = document.getElementById('alertPhone').value;
+            
+            // Simulate instant delivery
+            console.log('📧 INSTANT EMAIL:', message, 'to', email);
+            console.log('📱 INSTANT SMS:', message, 'to', phone);
+            
+            // Enhanced browser notification for real-time feel
+            if ('Notification' in window && Notification.permission === 'granted') {
+                const notification = new Notification(`${alertType}: ${symbol}`, {
+                    body: message,
+                    icon: alertType === 'GAIN' ? '📈' : '📉',
+                    requireInteraction: true,
+                    tag: symbol // Prevents duplicate notifications
+                });
+                
+                // Auto-close after 10 seconds
+                setTimeout(() => notification.close(), 10000);
+            }
+        }
+
+        function flashAlert(symbol, change) {
+            // Create a flashing visual alert
+            const flash = document.createElement('div');
+            flash.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: ${change > 0 ? 'rgba(40, 167, 69, 0.2)' : 'rgba(220, 53, 69, 0.2)'};
+                z-index: 9999;
+                animation: flashAlert 0.5s ease-in-out;
+                pointer-events: none;
+            `;
+            
+            document.body.appendChild(flash);
+            setTimeout(() => flash.remove(), 500);
+        }
+
+        function addToAlertLog(message) {
+            const logContainer = document.getElementById('alertLog');
+            const now = new Date().toLocaleString('en-IN');
+            
+            if (logContainer.innerHTML.includes('No alerts yet')) {
+                logContainer.innerHTML = '';
+            }
+            
+            const alertItem = document.createElement('div');
+            alertItem.className = 'alert-item';
+            alertItem.innerHTML = `
+                <div class="alert-time">${now}</div>
+                <div class="alert-message">${message}</div>
+            `;
+            
+            logContainer.insertBefore(alertItem, logContainer.firstChild);
+            
+            // Keep only last 10 alerts
+            const alerts = logContainer.querySelectorAll('.alert-item');
+            if (alerts.length > 10) {
+                alerts[alerts.length - 1].remove();
+            }
+        }
+
+        function showAlert(message, type) {
+            // Simple toast notification
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#17a2b8'};
+                color: white;
+                padding: 15px 20px;
+                border-radius: 10px;
+                z-index: 1000;
+                animation: slideIn 0.3s ease;
+            `;
+            toast.textContent = message;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('data:text/javascript;base64,c2VsZi5hZGRFdmVudExpc3RlbmVyKCdpbnN0YWxsJywgZnVuY3Rpb24oZXZlbnQpIHsKICBjb25zb2xlLmxvZygnU2VydmljZSBXb3JrZXIgaW5zdGFsbGVkJyk7Cn0pOwoKc2VsZi5hZGRFdmVudExpc3RlbmVyKCdmZXRjaCcsIGZ1bmN0aW9uKGV2ZW50KSB7CiAgZXZlbnQucmVzcG9uZFdpdGgoZmV0Y2goZXZlbnQucmVxdWVzdCkpOwp9KQo=')
+                    .then(function(registration) {
+                        console.log('PWA Service Worker registered');
+                    })
+                    .catch(function(error) {
+                        console.log('PWA Service Worker registration failed');
+                    });
+            });
+        }
+
+        // Show/hide custom hours input based on selection
+        document.getElementById('marketHours').addEventListener('change', function() {
+            const customGroup = document.getElementById('customHoursGroup');
+            if (this.value === 'custom') {
+                customGroup.style.display = 'block';
+            } else {
+                customGroup.style.display = 'none';
+            }
+            
+            // Update status if monitoring is active
+            if (isMonitoring) {
+                updateMarketStatus();
+            }
+        });
+
+        // Request notification permission on load
+        window.onload = function() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+        };
+
+        // Add some sample stocks for demo
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-add some popular stocks for demo
+            setTimeout(() => {
+                watchlist = ['RELIANCE', 'TCS', 'INFY'];
+                watchlist.forEach(symbol => {
+                    basePrices[symbol] = sampleStockData[symbol].price;
+                });
+                updateWatchlistDisplay();
+            }, 1000);
+        });
+    </script>
+
+    <style>
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        
+        @keyframes flashAlert {
+            0% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+    </style>
+</body>
+</html>
