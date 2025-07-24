@@ -767,7 +767,7 @@
                 <p>Real-time alerts for Indian stock market with Finnhub API</p>
                 <div class="api-status" id="apiStatus">
                     <div class="api-indicator"></div>
-                    <span>API Ready - Enter your Finnhub API key</span>
+                    <span>Loading API status...</span>
                 </div>
             </div>
         </div>
@@ -789,6 +789,7 @@
                 <button class="btn" onclick="testApiConnection()" id="testApiBtn">
                     <span>Test Connection</span>
                 </button>
+                <button class="btn btn-secondary" onclick="clearApiKey()">Clear API Key</button>
             </div>
 
             <div class="card">
@@ -797,14 +798,14 @@
                     Add Indian Stock
                 </h2>
                 <div class="input-group">
-                    <label for="stockSymbol">NSE Stock Symbol</label>
+                    <label for="stockSymbol">Search Indian Stocks</label>
                     <div style="position: relative;">
-                        <input type="text" id="stockSymbol" placeholder="e.g., RELIANCE.NS, TCS.NS, INFY.NS" 
+                        <input type="text" id="stockSymbol" placeholder="Type company name or symbol (e.g., Reliance, TCS, Infosys)" 
                                oninput="searchIndianStocks()" autocomplete="off">
                         <div id="stockDropdown" class="stock-dropdown"></div>
                     </div>
                     <small style="color: var(--gray-500); margin-top: 8px; display: block;">
-                        Add .NS suffix for NSE stocks (e.g., RELIANCE.NS for Reliance Industries)
+                        Search by company name or stock symbol. NSE symbols will be added automatically.
                     </small>
                 </div>
                 <button class="btn" onclick="addStock()" id="addStockBtn" disabled>
@@ -828,4 +829,696 @@
                 </div>
                 <div class="input-group">
                     <label for="alertThreshold">Alert Threshold (%)</label>
-                    <input type="number" id="alertThreshold" min="0.1" max
+                    <input type="number" id="alertThreshold" min="0.1" max="50" step="0.1" value="5" placeholder="5.0">
+                </div>
+                <div class="input-group">
+                    <label for="marketHours">Market Hours</label>
+                    <select id="marketHours">
+                        <option value="auto">Auto (9:15 AM - 3:30 PM IST)</option>
+                        <option value="extended">Extended (9:00 AM - 4:00 PM IST)</option>
+                        <option value="24x7">24x7 Monitoring</option>
+                        <option value="custom">Custom Hours</option>
+                    </select>
+                </div>
+                <div class="input-group" id="customHoursGroup" style="display: none;">
+                    <label>Custom Market Hours (IST)</label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="time" id="startTime" value="09:15">
+                        <span style="color: var(--gray-600); font-weight: 600;">to</span>
+                        <input type="time" id="endTime" value="15:30">
+                    </div>
+                </div>
+                <button class="btn" onclick="toggleMonitoring()" id="monitorBtn">Start Monitoring</button>
+            </div>
+        </div>
+
+        <div class="stock-list">
+            <h2>
+                <div class="watchlist-icon">👁️</div>
+                Your Watchlist
+            </h2>
+            <div id="stockItems">
+                <p style="text-align: center; color: var(--gray-500); padding: 40px; font-size: 1.1rem;">
+                    No stocks added yet. Add some stocks to get started! 🚀
+                </p>
+            </div>
+        </div>
+
+        <div class="status" id="monitoringStatus">
+            <div class="status-indicator"></div>
+            <span>Monitoring stopped. Configure API and add stocks to start monitoring.</span>
+        </div>
+
+        <div class="alert-log">
+            <h2>
+                <div class="alerts-icon">🚨</div>
+                Real-Time Alerts
+            </h2>
+            <div id="alertLog">
+                <p style="text-align: center; color: var(--gray-500); padding: 40px; font-size: 1.1rem;">
+                    No alerts yet. Alerts will appear when stocks move beyond your threshold during market hours. ⚡
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let apiKey = '';
+        let watchlist = [];
+        let isMonitoring = false;
+        let monitoringInterval;
+        let basePrices = {};
+        let marketHoursCheckInterval;
+        let apiCallCount = 0;
+        let lastApiReset = Date.now();
+        let selectedStock = null;
+
+        // Indian stock database for search
+        const indianStocks = [
+            { symbol: 'RELIANCE.NS', name: 'Reliance Industries Limited', keywords: ['reliance', 'ril'] },
+            { symbol: 'TCS.NS', name: 'Tata Consultancy Services Limited', keywords: ['tcs', 'tata consultancy'] },
+            { symbol: 'INFY.NS', name: 'Infosys Limited', keywords: ['infosys', 'infy'] },
+            { symbol: 'HDFCBANK.NS', name: 'HDFC Bank Limited', keywords: ['hdfc bank', 'hdfcbank'] },
+            { symbol: 'ICICIBANK.NS', name: 'ICICI Bank Limited', keywords: ['icici bank', 'icicibank'] },
+            { symbol: 'SBIN.NS', name: 'State Bank of India', keywords: ['sbi', 'state bank'] },
+            { symbol: 'BHARTIARTL.NS', name: 'Bharti Airtel Limited', keywords: ['airtel', 'bharti'] },
+            { symbol: 'ITC.NS', name: 'ITC Limited', keywords: ['itc'] },
+            { symbol: 'KOTAKBANK.NS', name: 'Kotak Mahindra Bank Limited', keywords: ['kotak', 'kotak bank'] },
+            { symbol: 'LT.NS', name: 'Larsen & Toubro Limited', keywords: ['larsen', 'lt', 'l&t'] },
+            { symbol: 'ASIANPAINT.NS', name: 'Asian Paints Limited', keywords: ['asian paints'] },
+            { symbol: 'MARUTI.NS', name: 'Maruti Suzuki India Limited', keywords: ['maruti', 'suzuki'] },
+            { symbol: 'WIPRO.NS', name: 'Wipro Limited', keywords: ['wipro'] },
+            { symbol: 'ULTRACEMCO.NS', name: 'UltraTech Cement Limited', keywords: ['ultratech', 'cement'] },
+            { symbol: 'TITAN.NS', name: 'Titan Company Limited', keywords: ['titan'] },
+            { symbol: 'NESTLEIND.NS', name: 'Nestle India Limited', keywords: ['nestle'] },
+            { symbol: 'HINDUNILVR.NS', name: 'Hindustan Unilever Limited', keywords: ['hul', 'hindustan unilever'] },
+            { symbol: 'BAJFINANCE.NS', name: 'Bajaj Finance Limited', keywords: ['bajaj finance'] },
+            { symbol: 'AXISBANK.NS', name: 'Axis Bank Limited', keywords: ['axis bank'] },
+            { symbol: 'HCLTECH.NS', name: 'HCL Technologies Limited', keywords: ['hcl', 'hcl tech'] },
+            { symbol: 'SUNPHARMA.NS', name: 'Sun Pharmaceutical Industries Limited', keywords: ['sun pharma'] },
+            { symbol: 'ONGC.NS', name: 'Oil and Natural Gas Corporation Limited', keywords: ['ongc', 'oil gas'] },
+            { symbol: 'TATAMOTORS.NS', name: 'Tata Motors Limited', keywords: ['tata motors'] },
+            { symbol: 'TATASTEEL.NS', name: 'Tata Steel Limited', keywords: ['tata steel'] },
+            { symbol: 'POWERGRID.NS', name: 'Power Grid Corporation of India Limited', keywords: ['power grid', 'powergrid'] },
+            { symbol: 'NTPC.NS', name: 'NTPC Limited', keywords: ['ntpc'] },
+            { symbol: 'TECHM.NS', name: 'Tech Mahindra Limited', keywords: ['tech mahindra'] },
+            { symbol: 'ADANIPORTS.NS', name: 'Adani Ports and Special Economic Zone Limited', keywords: ['adani ports'] },
+            { symbol: 'JSWSTEEL.NS', name: 'JSW Steel Limited', keywords: ['jsw steel'] },
+            { symbol: 'INDUSINDBK.NS', name: 'IndusInd Bank Limited', keywords: ['indusind bank'] }
+        ];
+
+        // Market hours configuration
+        const marketSchedule = {
+            auto: { start: '09:15', end: '15:30' },
+            extended: { start: '09:00', end: '16:00' },
+            '24x7': null,
+            custom: null
+        };
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSavedApiKey();
+            updateApiStatus();
+            
+            // Show/hide custom hours input based on selection
+            document.getElementById('marketHours').addEventListener('change', function() {
+                const customGroup = document.getElementById('customHoursGroup');
+                if (this.value === 'custom') {
+                    customGroup.style.display = 'block';
+                } else {
+                    customGroup.style.display = 'none';
+                }
+                
+                if (isMonitoring) {
+                    updateMarketStatus();
+                }
+            });
+
+            // Hide dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.input-group')) {
+                    document.getElementById('stockDropdown').classList.remove('show');
+                }
+            });
+
+            // Request notification permission
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+
+            // Focus stock input
+            setTimeout(() => {
+                if (apiKey) {
+                    document.getElementById('stockSymbol').focus();
+                } else {
+                    document.getElementById('apiKey').focus();
+                }
+            }, 500);
+        });
+
+        // Load saved API key from memory variable (persistent during session)
+        function loadSavedApiKey() {
+            // In a real application, you would implement secure storage
+            // For now, we'll use a session-based approach
+            const savedKey = sessionStorage.getItem('finnhub_api_key');
+            if (savedKey) {
+                apiKey = savedKey;
+                document.getElementById('apiKey').value = savedKey;
+                validateApiKey();
+                testApiConnection(true); // Auto-test on load
+            }
+        }
+
+        // Save API key to session storage
+        function saveApiKey() {
+            if (apiKey) {
+                sessionStorage.setItem('finnhub_api_key', apiKey);
+            }
+        }
+
+        // Clear API key
+        function clearApiKey() {
+            apiKey = '';
+            document.getElementById('apiKey').value = '';
+            sessionStorage.removeItem('finnhub_api_key');
+            updateApiStatus('error', 'API key cleared');
+            document.getElementById('addStockBtn').disabled = true;
+            showAlert('API key cleared', 'info');
+        }
+
+        // Validate API key input
+        function validateApiKey() {
+            const inputKey = document.getElementById('apiKey').value.trim();
+            const testBtn = document.getElementById('testApiBtn');
+            const addBtn = document.getElementById('addStockBtn');
+            
+            if (inputKey.length > 10) { // Basic validation
+                apiKey = inputKey;
+                testBtn.disabled = false;
+                updateApiStatus('warning', 'API key entered - Click test to verify');
+            } else {
+                apiKey = '';
+                testBtn.disabled = true;
+                addBtn.disabled = true;
+                updateApiStatus('error', 'Please enter a valid API key');
+            }
+        }
+
+        // Test API connection
+        async function testApiConnection(silent = false) {
+            if (!apiKey) {
+                showAlert('Please enter an API key first', 'error');
+                return;
+            }
+
+            const testBtn = document.getElementById('testApiBtn');
+            const originalContent = testBtn.innerHTML;
+            
+            testBtn.disabled = true;
+            testBtn.innerHTML = '<div class="loading-spinner"></div><span>Testing...</span>';
+
+            try {
+                const response = await fetch(`https://finnhub.io/api/v1/quote?symbol=RELIANCE.NS&token=${apiKey}`);
+                
+                if (response.status === 200) {
+                    const data = await response.json();
+                    
+                    if (data.c && data.c > 0) { // Check if we got valid price data
+                        updateApiStatus('connected', 'API Connected ✅');
+                        document.getElementById('addStockBtn').disabled = false;
+                        saveApiKey();
+                        if (!silent) showAlert('✅ API connection successful!', 'success');
+                    } else {
+                        throw new Error('Invalid response data');
+                    }
+                } else if (response.status === 401) {
+                    throw new Error('Invalid API key');
+                } else if (response.status === 429) {
+                    throw new Error('API rate limit exceeded');
+                } else {
+                    throw new Error(`API error: ${response.status}`);
+                }
+            } catch (error) {
+                updateApiStatus('error', `API Error: ${error.message}`);
+                document.getElementById('addStockBtn').disabled = true;
+                if (!silent) showAlert(`❌ API test failed: ${error.message}`, 'error');
+            }
+
+            testBtn.disabled = false;
+            testBtn.innerHTML = originalContent;
+        }
+
+        // Update API status display
+        function updateApiStatus(status = 'warning', message = 'API Ready - Enter your Finnhub API key') {
+            const statusElement = document.getElementById('apiStatus');
+            statusElement.className = `api-status ${status}`;
+            statusElement.querySelector('span').textContent = message;
+        }
+
+        // Search Indian stocks
+        function searchIndianStocks() {
+            const searchTerm = document.getElementById('stockSymbol').value.toLowerCase().trim();
+            const dropdown = document.getElementById('stockDropdown');
+            
+            if (searchTerm.length < 2) {
+                dropdown.classList.remove('show');
+                selectedStock = null;
+                return;
+            }
+
+            const filteredStocks = indianStocks.filter(stock => {
+                return stock.name.toLowerCase().includes(searchTerm) ||
+                       stock.symbol.toLowerCase().includes(searchTerm) ||
+                       stock.keywords.some(keyword => keyword.includes(searchTerm));
+            });
+
+            if (filteredStocks.length > 0) {
+                dropdown.innerHTML = filteredStocks.slice(0, 8).map(stock => `
+                    <div class="dropdown-item" onclick="selectStock('${stock.symbol}', '${stock.name}')">
+                        <div>
+                            <div class="stock-name">${stock.name}</div>
+                            <div class="stock-symbol-small">${stock.symbol}</div>
+                        </div>
+                    </div>
+                `).join('');
+                dropdown.classList.add('show');
+            } else {
+                dropdown.innerHTML = '<div class="no-results">No Indian stocks found matching your search</div>';
+                dropdown.classList.add('show');
+            }
+        }
+
+        // Select stock from dropdown
+        function selectStock(symbol, name) {
+            selectedStock = { symbol, name };
+            document.getElementById('stockSymbol').value = `${name} (${symbol})`;
+            document.getElementById('stockDropdown').classList.remove('show');
+        }
+
+        // Add stock to watchlist
+        async function addStock() {
+            if (!apiKey) {
+                showAlert('Please configure API key first', 'error');
+                return;
+            }
+
+            if (!selectedStock) {
+                showAlert('Please search and select a stock first', 'error');
+                return;
+            }
+
+            const symbol = selectedStock.symbol;
+
+            if (watchlist.some(item => item.symbol === symbol)) {
+                showAlert('Stock already in watchlist', 'error');
+                return;
+            }
+
+            // Get current price from Finnhub
+            try {
+                const quote = await fetchStockQuote(symbol);
+                if (quote && quote.c > 0) {
+                    watchlist.push({
+                        symbol: symbol,
+                        name: selectedStock.name,
+                        currentPrice: quote.c,
+                        previousClose: quote.pc,
+                        change: ((quote.c - quote.pc) / quote.pc * 100),
+                        lastUpdated: new Date()
+                    });
+
+                    basePrices[symbol] = quote.c;
+                    document.getElementById('stockSymbol').value = '';
+                    selectedStock = null;
+                    
+                    updateWatchlistDisplay();
+                    showAlert(`✅ Added ${symbol} to watchlist`, 'success');
+                } else {
+                    throw new Error('Invalid price data received');
+                }
+            } catch (error) {
+                showAlert(`Failed to add stock: ${error.message}`, 'error');
+            }
+        }
+
+        // Fetch stock quote from Finnhub
+        async function fetchStockQuote(symbol) {
+            if (!checkApiLimit()) {
+                throw new Error('API rate limit reached (60 calls/minute)');
+            }
+
+            const response = await fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${apiKey}`);
+            
+            if (!response.ok) {
+                throw new Error(`API request failed: ${response.status}`);
+            }
+
+            apiCallCount++;
+            return await response.json();
+        }
+
+        // Check API rate limit (60 calls per minute)
+        function checkApiLimit() {
+            const now = Date.now();
+            if (now - lastApiReset > 60000) { // Reset every minute
+                apiCallCount = 0;
+                lastApiReset = now;
+            }
+            return apiCallCount < 60;
+        }
+
+        // Remove stock from watchlist
+        function removeStock(symbol) {
+            watchlist = watchlist.filter(item => item.symbol !== symbol);
+            delete basePrices[symbol];
+            updateWatchlistDisplay();
+            showAlert(`🗑️ Removed ${symbol} from watchlist`, 'info');
+        }
+
+        // Remove all stocks
+        function removeAllStocks() {
+            if (watchlist.length === 0) {
+                showAlert('Watchlist is already empty', 'error');
+                return;
+            }
+            
+            if (confirm('Are you sure you want to remove all stocks?')) {
+                watchlist = [];
+                basePrices = {};
+                updateWatchlistDisplay();
+                showAlert('🧹 Cleared all stocks from watchlist', 'info');
+            }
+        }
+
+        // Update watchlist display
+        function updateWatchlistDisplay() {
+            const container = document.getElementById('stockItems');
+            
+            if (watchlist.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: var(--gray-500); padding: 40px; font-size: 1.1rem;">No stocks added yet. Add some stocks to get started! 🚀</p>';
+                return;
+            }
+
+            container.innerHTML = watchlist.map(stock => {
+                const changeClass = stock.change > 0 ? 'price-up' : stock.change < 0 ? 'price-down' : 'price-neutral';
+                const changeSymbol = stock.change > 0 ? '▲' : stock.change < 0 ? '▼' : '●';
+                const changePrefix = stock.change > 0 ? '+' : '';
+                
+                return `
+                    <div class="stock-item">
+                        <div class="stock-info">
+                            <div class="stock-symbol">${stock.symbol}</div>
+                            <div style="font-size: 0.9rem; color: var(--gray-600); margin-bottom: 4px;">${stock.name}</div>
+                            <div class="stock-price">₹${stock.currentPrice.toFixed(2)}</div>
+                            <div class="last-updated">Updated: ${stock.lastUpdated.toLocaleTimeString('en-IN')}</div>
+                        </div>
+                        <div class="stock-controls">
+                            <div class="price-change ${changeClass}">
+                                ${changeSymbol} ${changePrefix}${stock.change.toFixed(2)}%
+                            </div>
+                            <button class="btn btn-secondary" onclick="removeStock('${stock.symbol}')" style="padding: 10px 18px; font-size: 0.9rem;">Remove</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Toggle monitoring
+        function toggleMonitoring() {
+            const email = document.getElementById('alertEmail').value;
+            const phone = document.getElementById('alertPhone').value;
+            
+            if (!email && !phone) {
+                showAlert('Please provide at least an email or phone number for alerts', 'error');
+                return;
+            }
+
+            if (watchlist.length === 0) {
+                showAlert('Please add some stocks to monitor', 'error');
+                return;
+            }
+
+            if (!apiKey) {
+                showAlert('Please configure API key first', 'error');
+                return;
+            }
+
+            if (isMonitoring) {
+                stopMonitoring();
+            } else {
+                startMonitoring();
+            }
+        }
+
+        // Start monitoring
+        function startMonitoring() {
+            const threshold = parseFloat(document.getElementById('alertThreshold').value);
+            
+            if (isNaN(threshold) || threshold <= 0) {
+                showAlert('Please enter a valid threshold percentage (greater than 0)', 'error');
+                return;
+            }
+            
+            isMonitoring = true;
+            document.getElementById('monitorBtn').textContent = 'Stop Monitoring';
+            
+            // Start market hours checking
+            marketHoursCheckInterval = setInterval(updateMarketStatus, 30000);
+            updateMarketStatus();
+            
+            // Start stock monitoring every minute (Finnhub rate limit)
+            monitoringInterval = setInterval(() => {
+                if (isMarketOpen()) {
+                    checkStocks();
+                }
+            }, 60000); // 1 minute interval
+            
+            showAlert('🚀 Real-time stock monitoring started!', 'success');
+        }
+
+        // Stop monitoring
+        function stopMonitoring() {
+            isMonitoring = false;
+            document.getElementById('monitorBtn').textContent = 'Start Monitoring';
+            
+            if (monitoringInterval) {
+                clearInterval(monitoringInterval);
+            }
+            
+            if (marketHoursCheckInterval) {
+                clearInterval(marketHoursCheckInterval);
+            }
+            
+            updateMarketStatus();
+            showAlert('⏹️ Stock monitoring stopped', 'info');
+        }
+
+        // Check if market is open
+        function isMarketOpen() {
+            const marketMode = document.getElementById('marketHours').value;
+            
+            if (marketMode === '24x7') {
+                return true;
+            }
+            
+            const now = new Date();
+            const currentTime = now.toTimeString().slice(0, 5);
+            const currentDay = now.getDay();
+            
+            // Check if it's a weekend
+            if (currentDay === 0 || currentDay === 6) {
+                return false;
+            }
+            
+            let startTime, endTime;
+            
+            if (marketMode === 'custom') {
+                startTime = document.getElementById('startTime').value;
+                endTime = document.getElementById('endTime').value;
+            } else {
+                const schedule = marketSchedule[marketMode];
+                startTime = schedule.start;
+                endTime = schedule.end;
+            }
+            
+            return currentTime >= startTime && currentTime <= endTime;
+        }
+
+        // Update market status
+        function updateMarketStatus() {
+            const isOpen = isMarketOpen();
+            const statusElement = document.getElementById('monitoringStatus');
+            
+            if (!isMonitoring) {
+                statusElement.className = 'status error';
+                statusElement.innerHTML = '<div class="status-indicator"></div><span>Monitoring stopped. Configure API and add stocks to start monitoring.</span>';
+                return;
+            }
+            
+            if (isOpen) {
+                statusElement.className = 'status';
+                statusElement.innerHTML = '<div class="status-indicator"></div><span>🔴 LIVE - Market is OPEN, monitoring active (1-minute updates)</span>';
+            } else {
+                statusElement.className = 'status error';
+                const nextOpen = getNextMarketOpen();
+                statusElement.innerHTML = `<div class="status-indicator"></div><span>📴 Market CLOSED - Monitoring paused until ${nextOpen}</span>`;
+            }
+        }
+
+        // Get next market opening time
+        function getNextMarketOpen() {
+            const marketMode = document.getElementById('marketHours').value;
+            if (marketMode === '24x7') return 'Always Open';
+            
+            const now = new Date();
+            
+            let startTime;
+            if (marketMode === 'custom') {
+                startTime = document.getElementById('startTime').value;
+            } else {
+                startTime = marketSchedule[marketMode].start;
+            }
+            
+            if (now.getDay() === 5 && now.getHours() >= 15) {
+                return `Monday ${startTime}`;
+            }
+            
+            if (now.getDay() === 0 || now.getDay() === 6) {
+                return `Monday ${startTime}`;
+            }
+            
+            return `Tomorrow ${startTime}`;
+        }
+
+        // Check stocks for price changes
+        async function checkStocks() {
+            const threshold = parseFloat(document.getElementById('alertThreshold').value);
+            
+            for (const stock of watchlist) {
+                try {
+                    const quote = await fetchStockQuote(stock.symbol);
+                    
+                    if (quote && quote.c > 0) {
+                        const oldPrice = stock.currentPrice;
+                        const newPrice = quote.c;
+                        const basePrice = basePrices[stock.symbol];
+                        
+                        // Update stock data
+                        stock.currentPrice = newPrice;
+                        stock.previousClose = quote.pc;
+                        stock.change = ((newPrice - quote.pc) / quote.pc * 100);
+                        stock.lastUpdated = new Date();
+                        
+                        // Check for threshold breach
+                        const percentChange = ((newPrice - basePrice) / basePrice) * 100;
+                        
+                        if (Math.abs(percentChange) >= threshold) {
+                            triggerAlert(stock.symbol, newPrice, percentChange);
+                            basePrices[stock.symbol] = newPrice; // Reset base price after alert
+                        }
+                    }
+                } catch (error) {
+                    console.error(`Error fetching data for ${stock.symbol}:`, error);
+                }
+            }
+            
+            updateWatchlistDisplay();
+        }
+
+        // Trigger alert
+        function triggerAlert(symbol, price, change) {
+            const direction = change > 0 ? '📈 UP' : '📉 DOWN';
+            const alertType = change > 0 ? 'GAIN' : 'LOSS';
+            const timestamp = new Date().toLocaleTimeString('en-IN');
+            const threshold = parseFloat(document.getElementById('alertThreshold').value);
+            
+            const message = `🚨 ${threshold}% ALERT: ${symbol} moved ${Math.abs(change).toFixed(2)}% ${direction} to ₹${price.toFixed(2)} at ${timestamp}`;
+            
+            // Simulate real-time alert
+            simulateRealTimeAlert(symbol, message, alertType);
+            addToAlertLog(message);
+            flashAlert(symbol, change);
+        }
+
+        // Simulate real-time alert
+        function simulateRealTimeAlert(symbol, message, alertType) {
+            const email = document.getElementById('alertEmail').value;
+            const phone = document.getElementById('alertPhone').value;
+            
+            console.log('📧 EMAIL ALERT:', message, 'to', email);
+            console.log('📱 SMS ALERT:', message, 'to', phone);
+            
+            // Browser notification
+            if ('Notification' in window && Notification.permission === 'granted') {
+                const notification = new Notification(`${alertType}: ${symbol}`, {
+                    body: message,
+                    icon: alertType === 'GAIN' ? '📈' : '📉',
+                    requireInteraction: true,
+                    tag: symbol
+                });
+                
+                setTimeout(() => notification.close(), 10000);
+            }
+        }
+
+        // Flash visual alert
+        function flashAlert(symbol, change) {
+            const flash = document.createElement('div');
+            flash.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: ${change > 0 ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)'};
+                z-index: 9999;
+                animation: flashAlert 0.5s ease-in-out;
+                pointer-events: none;
+            `;
+            
+            document.body.appendChild(flash);
+            setTimeout(() => flash.remove(), 500);
+        }
+
+        // Add alert to log
+        function addToAlertLog(message) {
+            const logContainer = document.getElementById('alertLog');
+            const now = new Date().toLocaleString('en-IN');
+            
+            if (logContainer.innerHTML.includes('No alerts yet')) {
+                logContainer.innerHTML = '';
+            }
+            
+            const alertItem = document.createElement('div');
+            alertItem.className = 'alert-item';
+            alertItem.innerHTML = `
+                <div class="alert-time">${now}</div>
+                <div class="alert-message">${message}</div>
+            `;
+            
+            logContainer.insertBefore(alertItem, logContainer.firstChild);
+            
+            // Keep only last 10 alerts
+            const alerts = logContainer.querySelectorAll('.alert-item');
+            if (alerts.length > 10) {
+                alerts[alerts.length - 1].remove();
+            }
+        }
+
+        // Show toast notification
+        function showAlert(message, type) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOutRight 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+                setTimeout(() => toast.remove(), 400);
+            }, 4000);
+        }
+    </script>
+</body>
+</html>
