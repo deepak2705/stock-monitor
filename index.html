@@ -146,62 +146,25 @@
             border-radius: 15px;
             padding: 8px 16px;
             border: 1px solid rgba(255, 255, 255, 0.2);
-            font-size: 0.9rem;
+            margin-top: 15px;
             font-weight: 600;
-            margin-top: 10px;
+            font-size: 0.9rem;
         }
 
         .api-indicator {
-            width: 12px;
-            height: 12px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
-            background: var(--success);
+            background: var(--warning);
             animation: pulse-indicator 2s infinite;
         }
 
-        .market-ticker {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-top: 20px;
-            flex-wrap: wrap;
+        .api-status.connected .api-indicator {
+            background: var(--success);
         }
 
-        .ticker-item {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 12px 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            animation: pulse-glow 3s ease-in-out infinite;
-        }
-
-        .ticker-symbol {
-            color: white;
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-
-        .ticker-price {
-            color: var(--success);
-            font-weight: 700;
-            font-size: 1rem;
-        }
-
-        @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 0 20px rgba(255, 255, 255, 0.1); }
-            50% { box-shadow: 0 0 30px rgba(255, 255, 255, 0.2), inset 0 0 20px rgba(255, 255, 255, 0.1); }
-        }
-
-        @keyframes pulse-indicator {
-            0%, 100% { 
-                opacity: 1; 
-                transform: scale(1);
-            }
-            50% { 
-                opacity: 0.7; 
-                transform: scale(1.2);
-            }
+        .api-status.error .api-indicator {
+            background: var(--danger);
         }
 
         /* Modern dashboard grid */
@@ -323,6 +286,15 @@
             position: relative;
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
         }
 
         .btn::before {
@@ -336,23 +308,17 @@
             transition: left 0.5s;
         }
 
-        .btn:hover::before {
+        .btn:hover:not(:disabled)::before {
             left: 100%;
         }
 
-        .btn:hover {
+        .btn:hover:not(:disabled) {
             transform: translateY(-3px);
             box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
         }
 
-        .btn:active {
+        .btn:active:not(:disabled) {
             transform: translateY(-1px);
-        }
-
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
         }
 
         .btn-secondary {
@@ -360,8 +326,22 @@
             box-shadow: 0 10px 30px rgba(239, 68, 68, 0.3);
         }
 
-        .btn-secondary:hover {
+        .btn-secondary:hover:not(:disabled) {
             box-shadow: 0 15px 40px rgba(239, 68, 68, 0.4);
+        }
+
+        .loading-spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 2px solid white;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         /* Modern stock list */
@@ -446,12 +426,6 @@
             letter-spacing: 0.5px;
         }
 
-        .stock-name {
-            color: var(--gray-600);
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-
         .stock-price {
             color: var(--gray-600);
             font-size: 1rem;
@@ -494,6 +468,12 @@
             border: 1px solid #94a3b8;
         }
 
+        .last-updated {
+            font-size: 0.8rem;
+            color: var(--gray-500);
+            margin-top: 4px;
+        }
+
         /* Enhanced status indicators */
         .status {
             display: flex;
@@ -527,6 +507,17 @@
         .status.error .status-indicator {
             background: var(--danger);
             box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+        }
+
+        @keyframes pulse-indicator {
+            0%, 100% { 
+                opacity: 1; 
+                transform: scale(1);
+            }
+            50% { 
+                opacity: 0.7; 
+                transform: scale(1.2);
+            }
         }
 
         /* Premium alert log */
@@ -631,39 +622,16 @@
             border-radius: 0 0 15px 15px;
         }
 
-        .dropdown-stock-name {
+        .stock-name {
             font-weight: 600;
             color: var(--gray-800);
             margin-bottom: 4px;
         }
 
-        .dropdown-stock-symbol {
+        .stock-symbol-small {
             font-size: 0.85rem;
             color: var(--gray-500);
             font-weight: 500;
-        }
-
-        .dropdown-stock-price {
-            text-align: right;
-        }
-
-        .dropdown-price-value {
-            font-weight: 600;
-            color: var(--gray-700);
-            font-size: 0.95rem;
-        }
-
-        .dropdown-price-change {
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-        .dropdown-price-change.positive {
-            color: var(--success);
-        }
-
-        .dropdown-price-change.negative {
-            color: var(--danger);
         }
 
         .no-results {
@@ -671,30 +639,6 @@
             text-align: center;
             color: var(--gray-500);
             font-style: italic;
-        }
-
-        .loading {
-            padding: 20px;
-            text-align: center;
-            color: var(--gray-500);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .spinner {
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--gray-300);
-            border-top: 2px solid var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
         }
 
         /* Custom scrollbar */
@@ -774,19 +718,6 @@
             100% { opacity: 0; }
         }
 
-        /* API Rate Limit Indicator */
-        .rate-limit {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 8px 16px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-top: 10px;
-            color: rgba(255, 255, 255, 0.9);
-        }
-
         /* Responsive design */
         @media (max-width: 768px) {
             .dashboard {
@@ -803,14 +734,6 @@
             
             .card, .stock-list, .alert-log {
                 padding: 25px;
-            }
-            
-            .market-ticker {
-                gap: 10px;
-            }
-            
-            .ticker-item {
-                padding: 8px 15px;
             }
 
             .stock-item {
@@ -833,11 +756,6 @@
             .header p {
                 font-size: 1.1rem;
             }
-
-            .market-ticker {
-                flex-direction: column;
-                align-items: center;
-            }
         }
     </style>
 </head>
@@ -845,17 +763,69 @@
     <div class="container">
         <div class="header">
             <div class="header-content">
-                <h1>📊 Stock Market Monitor</h1>
-                <p>Real-time alerts for Indian stock market movements powered by Finnhub API</p>
+                <h1>📊 Indian Stock Monitor</h1>
+                <p>Real-time alerts for Indian stock market with Finnhub API</p>
                 <div class="api-status" id="apiStatus">
                     <div class="api-indicator"></div>
-                    <span>Finnhub API Connected</span>
-                </div>
-                <div class="rate-limit" id="rateLimitStatus">
-                    API Calls: 0/60 per minute
-                </div>
-                <div class="market-ticker" id="marketTicker">
-                    <!-- Market data will be loaded here -->
+                    <span>API Ready - Enter your Finnhub API key</span>
                 </div>
             </div>
-        
+        </div>
+
+        <div class="dashboard">
+            <div class="card">
+                <h2>
+                    <div class="card-icon add-stock-icon">🔑</div>
+                    API Configuration
+                </h2>
+                <div class="input-group">
+                    <label for="apiKey">Finnhub API Key</label>
+                    <input type="password" id="apiKey" placeholder="Enter your Finnhub API key" 
+                           oninput="validateApiKey()">
+                    <small style="color: var(--gray-500); margin-top: 8px; display: block;">
+                        Get your free API key from <a href="https://finnhub.io/" target="_blank" style="color: var(--primary);">finnhub.io</a> (60 calls/minute free)
+                    </small>
+                </div>
+                <button class="btn" onclick="testApiConnection()" id="testApiBtn">
+                    <span>Test Connection</span>
+                </button>
+            </div>
+
+            <div class="card">
+                <h2>
+                    <div class="card-icon add-stock-icon">📈</div>
+                    Add Indian Stock
+                </h2>
+                <div class="input-group">
+                    <label for="stockSymbol">NSE Stock Symbol</label>
+                    <div style="position: relative;">
+                        <input type="text" id="stockSymbol" placeholder="e.g., RELIANCE.NS, TCS.NS, INFY.NS" 
+                               oninput="searchIndianStocks()" autocomplete="off">
+                        <div id="stockDropdown" class="stock-dropdown"></div>
+                    </div>
+                    <small style="color: var(--gray-500); margin-top: 8px; display: block;">
+                        Add .NS suffix for NSE stocks (e.g., RELIANCE.NS for Reliance Industries)
+                    </small>
+                </div>
+                <button class="btn" onclick="addStock()" id="addStockBtn" disabled>
+                    <span>Add to Watchlist</span>
+                </button>
+                <button class="btn btn-secondary" onclick="removeAllStocks()">Clear All</button>
+            </div>
+
+            <div class="card">
+                <h2>
+                    <div class="card-icon settings-icon">⚙️</div>
+                    Alert Settings
+                </h2>
+                <div class="input-group">
+                    <label for="alertEmail">Email Address</label>
+                    <input type="email" id="alertEmail" placeholder="your.email@gmail.com">
+                </div>
+                <div class="input-group">
+                    <label for="alertPhone">Phone Number (SMS)</label>
+                    <input type="tel" id="alertPhone" placeholder="+91-9876543210">
+                </div>
+                <div class="input-group">
+                    <label for="alertThreshold">Alert Threshold (%)</label>
+                    <input type="number" id="alertThreshold" min="0.1" max
